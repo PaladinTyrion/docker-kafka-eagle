@@ -23,13 +23,13 @@ RUN apk update \
 
 # install mysql & update mysql config
 ENV MYSQL_LOG /app/mysql/log
+COPY my.cnf /etc/my.cnf
 RUN apk update \
     && mkdir -p /run/mysqld \
-    && add --no-cache mysql mysql-client \
+    && apk add --no-cache mysql mysql-client \
     && rm -rf /var/cache/apk/* \
+    && rm -rf /var/lib/mysql/ib* \
     && mysql_install_db --user=root > /dev/null
-
-COPY my.cnf /etc/my.cnf
 
 # update kafka-eagle config & log4j
 ENV KE_PORT 8999
@@ -38,7 +38,7 @@ RUN chmod +x $KE_HOME/bin/ke.sh
 RUN mkdir -p ${MYSQL_LOG} \
     && mkdir -p ${KE_LOG}
 
-VOLUME ["/var/lib/mysql", "/app/mysql/log", "/app/ke/log"]
+VOLUME ["/var/lib/mysql", "/app/mysql/log", "/app/ke/log", "/opt/kafka-eagle/kms/logs"]
 EXPOSE 8999 3306
 
 # start mysql & ke.sh
