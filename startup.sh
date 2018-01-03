@@ -1,28 +1,10 @@
 #!/bin/bash
 
-if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
-  MYSQL_ROOT_PASSWORD="paladin"
-fi
-
 if [ "$KAFKA_CLUSTER" = "" ]; then
   KAFKA_CLUSTER="0.0.0.0:2181"
 fi
 
-tfile=`mktemp`
-if [ ! -f "$tfile" ]; then
-    return 1
-fi
-
-cat << EOF > $tfile
-USE mysql;
-FLUSH PRIVILEGES;
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY "$MYSQL_ROOT_PASSWORD" WITH GRANT OPTION;
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
-UPDATE user SET password=PASSWORD("") WHERE user='root' AND host='localhost';
-EOF
-
-mysqld --user=root --bootstrap --verbose=0 < $tfile
-rm -f $tfile
+mysql_install_db --user=root > /dev/null
 
 nohup mysqld --user=root >$MYSQL_LOG/mysqld.log 2>&1 &
 
@@ -35,6 +17,10 @@ sed -i -e "s#^cluster1.zk.list=.*\$#kafkacluster.zk.list=${KAFKA_CLUSTER}#" $KE_
 sed -i -e "/^cluster2.zk.list=.*$/d" $KE_HOME/conf/system-config.properties
 sed -i -e "s#^kafka.eagle.webui.port=.*\$#kafka.eagle.webui.port=${KE_PORT}#" $KE_HOME/conf/system-config.properties
 sed -i -e "s#^kafka.eagle.mail.enable=.*\$#kafka.eagle.mail.enable=false#" $KE_HOME/conf/system-config.properties
-sed -i -e "s#^kafka.eagle.password=.*\$#kafka.eagle.password=${MYSQL_ROOT_PASSWORD}#" $KE_HOME/conf/system-config.properties
+sed -i -e "s#^kafka.eagle.password=.*\$#kafka.eagle.password=123456#" $KE_HOME/conf/system-config.properties
+
+ke.sh start
+
+tail -f /app/ke/log/error.log
 
 exec "$@"

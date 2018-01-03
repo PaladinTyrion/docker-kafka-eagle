@@ -11,7 +11,9 @@ ENV TARBALL "$URL/kafka-eagle-web-${KE_VERSION}-bin.tar.gz"
 
 # install kafka-eagle
 RUN apk update \
-    && apk add --no-cache bash \
+    && apk add --no-cache bash tzdata \
+    && rm -f /etc/localtime \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && apk add --no-cache -t .build-deps wget openssl tar \
     && cd /tmp \
     && wget --no-check-certificate --progress=bar:force -O kafka-eagle.tar.gz "$TARBALL" \
@@ -27,9 +29,7 @@ COPY my.cnf /etc/my.cnf
 RUN apk update \
     && mkdir -p /run/mysqld \
     && apk add --no-cache mysql mysql-client \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /var/lib/mysql/ib* \
-    && mysql_install_db --user=root > /dev/null
+    && rm -rf /var/cache/apk/*
 
 # update kafka-eagle config & log4j
 ENV KE_PORT 8999
@@ -47,6 +47,4 @@ WORKDIR /app/mysql
 COPY startup.sh ./startup.sh
 RUN chmod +x ./startup.sh
 
-ENTRYPOINT ["startup.sh"]
-
-CMD ["ke.sh", "start"]
+ENTRYPOINT ["/app/mysql/startup.sh"]
