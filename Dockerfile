@@ -6,7 +6,7 @@ ENV KE_HOME /opt/kafka-eagle
 ENV KE_CONF $KE_HOME/conf
 ENV KE_LOG /app/ke/log
 ENV PATH $KE_HOME/bin:$PATH
-ENV URL "https://github.com/PaladinTyrion/docker-kafka-eagle/releases/download/${KE_VERSION}"
+ENV URL "https://coding.net/u/smartloli/p/kafka-eagle-bin/git/raw/master"
 ENV TARBALL "$URL/kafka-eagle-web-${KE_VERSION}-bin.tar.gz"
 
 # install kafka-eagle
